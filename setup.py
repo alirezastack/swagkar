@@ -9,6 +9,7 @@ requires = [
     "requests",
     "pytest",
     "coverage",
+    "mongoengine"
 ]
 
 open(os.path.join(here, "requirements.txt"), "w").writelines(
@@ -31,4 +32,9 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=requires,
+    entry_points="""\
+    [console_scripts]
+    ok_swag_import = swagkar.import_swagger_file:main
+    ok_swag_call = swagkar.call_api_method:main
+    """,
 )
