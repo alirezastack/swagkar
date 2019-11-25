@@ -9,7 +9,8 @@ requires = [
     "requests",
     "pytest",
     "coverage",
-    "mongoengine"
+    "mongoengine",
+    "swagger-parser",
 ]
 
 open(os.path.join(here, "requirements.txt"), "w").writelines(
@@ -18,7 +19,7 @@ open(os.path.join(here, "requirements.txt"), "w").writelines(
 
 setup(
     name="swagkar",
-    version="20191124",
+    version="20191125",
     description="Swagger Parser & Runner Utility",
     long_description="This utility is intended to ease the use of 3rd-party APIs which is based on Swagger",
     classifiers=[

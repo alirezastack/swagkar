@@ -2,3 +2,4 @@ requests
 pytest
 coverage
 mongoengine
+swagger-parser
