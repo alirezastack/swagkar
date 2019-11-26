@@ -3,18 +3,14 @@ from swagkar.store.mongo_connection import MongoConnection
 from swagkar.store.api_store import APISpecificationStore
 from swagger_parser import SwaggerParser
 from swagkar import config, logger
+import argparse
 import sys
-import os
 
 
 def import_file(file_path):
     # TODO read swagger from URL too
     sp = SwaggerParser(swagger_path=file_path)
     assert len(sp.specification['schemes']) > 0, "scheme property is mandatory"
-
-    MongoConnection(config['mongo'])
-    api_spec_store = APISpecificationStore()
-    method_spec_store = MethodSpecificationStore()
 
     spec_info = sp.specification.get('info', {})
 
@@ -31,6 +27,9 @@ def import_file(file_path):
 
     base_server_url = f'{default_scheme}://{sp.specification["host"]}'
 
+    MongoConnection(config['mongo'])
+
+    api_spec_store = APISpecificationStore()
     out = api_spec_store.save({
         'server_url': base_server_url,
         'title': spec_info.get('title'),
@@ -41,6 +40,7 @@ def import_file(file_path):
     })
     logger.info(f'api spec document has been saved {out}')
 
+    method_spec_store = MethodSpecificationStore()
     for operationId in sp.operation.keys():
         part = sp.operation[operationId]
         logger.debug(part)
@@ -53,6 +53,7 @@ def import_file(file_path):
         out = method_spec_store.save({
             'operation_id': operationId,
             'method': part[1],
+            'path': part[0],
             'summary': operation_sub_method[part[1]].get('summary'),
             'description': operation_sub_method[part[1]].get('description'),
             'produces': operation_sub_method[part[1]].get('produces'),
@@ -60,28 +61,17 @@ def import_file(file_path):
         })
         logger.info(f'method document has been saved {out}')
 
-
-def usage(argv):
-    """Print script usage."""
-    cmd = os.path.basename(argv[0])
-    s = """
-    Usage: {prog} your_swagger_file_path.yml
-
-    `your_swagger_file_path.yml` is a valid YAML file format containing Swagger API Spec
-
-    Examples:
-        {prog} snapproom_api_spec.yml
-
-    If valid, all paths and its corresponding methods will be imported into MongoDB database for future usage.
-    """.format(prog=cmd)
-    logger.error(s)
+    sys.exit()
 
 
-def main(argv=sys.argv):  # pylint: disable=W0102
-    """Script entrypoint."""
-    if len(argv) < 2:
-        usage(argv)
-        sys.exit(1)
-
-    swagger_file_path = sys.argv[1]
-    import_file(swagger_file_path)
+def main():  # pylint: disable=W0102
+    """
+    main function is the entry-point of the import file method
+    :return:
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--swagger-file',
+                        required=True,
+                        help='absolute path of your desired swagger file')
+    args = parser.parse_args()
+    import_file(args.swagger_file)

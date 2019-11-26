@@ -25,7 +25,7 @@ class MethodSpecificationStore:
 
     def get_by_operation_id(self, operation_id):
         try:
-            api_doc = MethodSpecification.objects(operation_id=operation_id.lower()).get()
+            api_doc = MethodSpecification.objects(operation_id=operation_id.lower()).first()
             api_doc = json.loads(api_doc.to_json())
             return api_doc
         except DoesNotExist as dne:

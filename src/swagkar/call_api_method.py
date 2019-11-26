@@ -1,37 +1,63 @@
-from swagkar import logger
+from swagkar.store.method_store import MethodSpecificationStore
+from swagkar.store.mongo_connection import MongoConnection
+from swagkar.store.api_store import APISpecificationStore
+from swagkar.utils import parse_parameters, HttpResult
+from swagkar import config, logger
+import argparse
 import sys
 import os
 
 
-def call_api_method(operation_id, params=None):
-    pass
+def invoke_service_operation(operation_id, payload=None, parameters=None, headers=None):
+    MongoConnection(config['mongo'])
+
+    api_spec_store = APISpecificationStore()
+    method_spec_store = MethodSpecificationStore()
+    method_spec = method_spec_store.get_by_operation_id(operation_id=operation_id)
+    if not method_spec:
+        logger.error(f'operation id -> `{operation_id}` <- does not exist!')
+        sys.exit(0)
+
+    logger.info(method_spec)
+    parsed_parameters = parse_parameters(payload)
+    required_params = filter(lambda x: x['required'], method_spec['parameters'])
+    for required_param in required_params:
+        if not payload or required_param not in parsed_parameters:
+            logger.error(f'{required_param} is a required parameter')
+            sys.exit(1)
+
+    # TODO call remote api via requests
+    # TODO ...
+
+    # TODO fill this class with proper data
+    return HttpResult(
+        Status=200,
+        Body={},
+        Headers={}
+    )
 
 
-def usage(argv):
-    """Print script usage."""
-    cmd = os.path.basename(argv[0])
-    s = """
-    Usage: {prog} YourOperationId [param1=x&param2=y&...]
+def main():  # pylint: disable=W0102
+    """
+    main function is the entry-point of the call api method
+    :return: remote rest api response
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--operation',
+                        required=True,
+                        help='OperationId of your desired call')
+    parser.add_argument('--parameters',
+                        help='parameters used in URL')
+    parser.add_argument('--body',
+                        help='body content of the request payload')
+    parser.add_argument('--headers',
+                        help='headers of your request')
+    args = parser.parse_args()
 
-    `YourOperationId` is a unique id referring to the method you are willing to call from 3rd-party API.
-    In case the specified operation id has parameters include them in front of the operation as mentioned in the usage.
-    It is script's responsibility to send params as JSON body, in path or combined.
+    operation_id = args.operation
+    parameters = args.parameters
+    payload = args.body
+    headers = args.headers
 
-    Examples:
-        {prog} GetRoomById room_id=12
-
-    If valid, remote request will be called and response will be returned
-    """.format(prog=cmd)
-    logger.error(s)
-
-
-def main(argv=sys.argv):  # pylint: disable=W0102
-    """Script entrypoint."""
-    if len(argv) < 2:
-        usage(argv)
-        sys.exit(1)
-
-    operation_id = sys.argv[1]
-    params = argv[2] if len(argv) > 2 else None
-
-    call_api_method(operation_id, params)
+    res = invoke_service_operation(operation_id, payload, parameters, headers)
+    logger.info(f'remote service result: {res}')
