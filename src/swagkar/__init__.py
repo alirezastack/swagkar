@@ -12,7 +12,7 @@ try:
 
     print(f'config file is set to {config_file}')
     config = json.loads(config)
-except KeyError as ke:
+except KeyError:
     print('Env variable `OK_SWAG_CONFIG` needs to be set to json configuration file path!')
     sys.exit(1)
 except Exception:
