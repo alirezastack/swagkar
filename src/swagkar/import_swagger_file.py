@@ -36,7 +36,7 @@ def import_file(file_path):
         'version': spec_info.get('version'),
         'consumes': sp.specification.get('consumes'),
         'produces': sp.specification.get('produces'),
-        'operations': sp.operation.keys()
+        'operations': list(map(lambda x: x.lower(), sp.operation.keys()))
     })
     logger.info(f'api spec document has been saved {out}')
 

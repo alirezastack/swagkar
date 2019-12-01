@@ -21,3 +21,9 @@ class APISpecificationStore:
         api_doc = ApiSpecification.objects(id=api_id).get()
         api_doc = json.loads(api_doc.to_json())
         return api_doc
+
+    def get_by_operation_id(self, operation_id):
+        print(operation_id)
+        api_doc = ApiSpecification.objects(operations=operation_id).get()
+        api_doc = json.loads(api_doc.to_json())
+        return api_doc
